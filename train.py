@@ -1,6 +1,5 @@
 from torch.utils.tensorboard import SummaryWriter
 import torch
-from model import Model
 from torchsummary import summary
 from torchvision import datasets, transforms
 from torch.optim import Adam
@@ -8,32 +7,31 @@ import config
 from tqdm import trange
 from torch import nn
 from torch.utils.data import DataLoader
-from misc import Logger, accuracy
+from misc import Logger, accuracy, overlay
 from lottery import Lottery
 import numpy as np
+from model import Unet
 from dataloader import TrainDataset
 
 np.random.seed(config.seed)
 torch.manual_seed(config.seed)
 torch.use_deterministic_algorithms(True)
 
-model = Model()
-summary(model, (1, 28, 28))
+model = Unet()
+summary(model, (3, 1080, 1920))
 # writer = SummaryWriter()
-writer = SummaryWriter('/Users/charlie/Documents/ML/Lottery/archive')
+writer = SummaryWriter('archive')
 
 train = TrainDataset()
 train_loader = DataLoader(train, batch_size=16)
 
 device = torch.device('mps')
 opt = Adam(model.parameters(), lr=config.warmup_lr)
-loss_fn = nn.CrossEntropyLoss()
+loss_fn = nn.MSELoss()
 
 trainLossLogger = Logger(writer, "trainLossLogger")
-trainAccuracyLogger = Logger(writer, "trainAccuracyLogger")
 
 testLossLogger = Logger(writer, "testLossLogger")
-testAccuracyLogger = Logger(writer, "testAccuracyLogger")
 
 model = model.to(device)
 model.train()
@@ -46,6 +44,9 @@ for epoch in trange(config.pretrain_epoch):
         loss = loss_fn(output, target)
         loss.backward()
         opt.step()
+        print(loss.item(), len(output))
+        trainLossLogger.add(loss.item(), len(output))
+    print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
 
     # for batch_idx, (data, target) in enumerate(test_loader):
     #     data, target = data.to(device), target.to(device)
