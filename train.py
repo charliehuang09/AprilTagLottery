@@ -44,7 +44,6 @@ for epoch in trange(config.pretrain_epoch):
         loss = loss_fn(output, target)
         loss.backward()
         opt.step()
-        print(loss.item(), len(output))
         trainLossLogger.add(loss.item(), len(output))
     print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
 
@@ -71,7 +70,6 @@ for iteration in range(0, config.iterations):
             loss.backward()
             opt.step()
             trainLossLogger.add(loss.item(), len(output))
-            trainAccuracyLogger.add(accuracy(output, target), 1)
         # for batch_idx, (data, target) in enumerate(test_loader):
         #     model = lottery.clampWeights(model)
         #     data, target = data.to(device), target.to(device)
@@ -80,19 +78,15 @@ for iteration in range(0, config.iterations):
         #     testLossLogger.add(loss.item(), len(output))
         #     testAccuracyLogger.add(accuracy(output, target), 1)
 
-        print(f"Train Loss: {trainLossLogger.get()} Train Accuracy: {trainAccuracyLogger.get()*100}% Test Loss: {testLossLogger.get()} Test Accuracy: {testAccuracyLogger.get()*100} Epoch: {epoch + 1}")
+        print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
     lottery.updateMask(model)
     model = lottery.applyMask(model)
 
 trainLossLogger.clear()
 testLossLogger.clear()
-trainAccuracyLogger.clear()
-testAccuracyLogger.clear()
 
 trainLossLogger.setWrite(True)
 testLossLogger.setWrite(True)
-trainAccuracyLogger.setWrite(True)
-testAccuracyLogger.setWrite(True)
 opt = Adam(model.parameters(), lr=config.lr)
 print("FINAL-Training----------------------------------------------------------------")
 for epoch in range(config.epoch):
@@ -105,7 +99,6 @@ for epoch in range(config.epoch):
         loss.backward()
         opt.step()
         trainLossLogger.add(loss.item(), len(output))
-        trainAccuracyLogger.add(accuracy(output, target), 1)
     # for batch_idx, (data, target) in enumerate(test_loader):
     #     model = lottery.clampWeights(model)
     #     data, target = data.to(device), target.to(device)
@@ -113,15 +106,13 @@ for epoch in range(config.epoch):
     #     loss = loss_fn(output, target)
     #     testLossLogger.add(loss.item(), len(output))
     #     testAccuracyLogger.add(accuracy(output, target), 1)
-    print(f"Train Loss: {trainLossLogger.get()} Train Accuracy: {trainAccuracyLogger.get()*100}% Test Loss: {testLossLogger.get()} Test Accuracy: {testAccuracyLogger.get()*100} Epoch: {epoch + 1}")
+    print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
 
 
 print("FINAL")
-print(f"Train Loss: {trainLossLogger.getMin()} Train Accuracy: {trainAccuracyLogger.getMax()*100}% Test Loss: {testLossLogger.getMin()} Test Accuracy: {testAccuracyLogger.getMax()*100} Epoch: {epoch + 1}")
+print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
 
 writer.add_scalar("Final trainLossLogger", trainLossLogger.getMin(), 0) 
-writer.add_scalar("Final trainAccuracyLogger", trainAccuracyLogger.getMax(), 0)
 writer.add_scalar("Final testLossLogger", testLossLogger.getMin(), 0)
-writer.add_scalar("Final testAccuracyLogger", testAccuracyLogger.getMax(), 0)
 
 print(lottery.getMask())
