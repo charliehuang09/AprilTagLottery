@@ -7,7 +7,8 @@ import config
 from tqdm import trange
 from torch import nn
 from torch.utils.data import DataLoader
-from misc import Logger, accuracy, overlay
+from misc import accuracy, overlay
+from logger import Logger
 from lottery import Lottery
 import numpy as np
 from model import Unet
@@ -18,7 +19,7 @@ torch.manual_seed(config.seed)
 torch.use_deterministic_algorithms(True)
 
 model = Unet()
-summary(model, (3, 1080, 1920))
+summary(model, (3, 960, 540))
 # writer = SummaryWriter()
 writer = SummaryWriter('archive')
 
@@ -47,15 +48,17 @@ for epoch in trange(config.pretrain_epoch):
         loss.backward()
         opt.step()
         trainLossLogger.add(loss.item(), len(output))
-    print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
 
     for batch_idx, (data, target) in enumerate(valid_loader):
         data, target = data.to(device), target.to(device)
         output = model(data)
         loss = loss_fn(output, target)
+        testLossLogger.add(loss.item(), len(output))
     
     if epoch == config.warmup_steps:
         opt = Adam(model.parameters(), lr=config.lr)
+
+    print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
 exit(0)
 
 lottery = Lottery(model, config.prune_percent, config.iterations)

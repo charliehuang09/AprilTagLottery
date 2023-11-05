@@ -18,6 +18,7 @@ class TrainDataset(Dataset):
                 ret, frame = cap.read()
                 if not ret:
                     continue
+                frame = cv2.resize(frame, (960, 540))
                 self.imgs.append(frame)
         self.imgs = np.array(self.imgs)
         print("finished loading dataset")
@@ -32,7 +33,7 @@ class TrainDataset(Dataset):
         if ids == [0]:
             corners = corners[0].astype(np.int32)
             label = cv2.fillPoly(label, pts = corners, color =(255,255,255))
-        label = cv2.resize(label, (671, 351))
+        label = cv2.resize(label, (287, 127))
 
         img = img.astype(np.float32)
         label = label.astype(np.float32)
@@ -54,7 +55,7 @@ class ValidDataset(Dataset):
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
             img = img[:1080*4, :1920*4]
-            img = cv2.resize(img, (1920, 1080))
+            img = cv2.resize(img, (960, 540))
             (corners, ids, rejected) = cv2.aruco.detectMarkers(img, cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_1000))
             label = np.zeros(shape=(img.shape[0], img.shape[1]))
             if ids == [0]:
@@ -64,7 +65,7 @@ class ValidDataset(Dataset):
             img = img.swapaxes(0, 2)
             img = img.swapaxes(1, 2)
 
-            label = cv2.resize(label, (671, 351))
+            label = cv2.resize(label, (287, 127))
             label = softmax(label)
             label = np.array([label])
 

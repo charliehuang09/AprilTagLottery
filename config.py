@@ -6,4 +6,4 @@ warmup_steps = 3
 seed = 42
 iterations = 15
 iteration_epoch = 25
-pretrain_epoch = 5
+pretrain_epoch = 10
