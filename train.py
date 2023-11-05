@@ -11,7 +11,7 @@ from misc import Logger, accuracy, overlay
 from lottery import Lottery
 import numpy as np
 from model import Unet
-from dataloader import TrainDataset
+from dataloader import TrainDataset, ValidDataset
 
 np.random.seed(config.seed)
 torch.manual_seed(config.seed)
@@ -22,6 +22,8 @@ summary(model, (3, 1080, 1920))
 # writer = SummaryWriter()
 writer = SummaryWriter('archive')
 
+valid = ValidDataset()
+valid_loader = DataLoader(valid, batch_size=1)
 train = TrainDataset()
 train_loader = DataLoader(train, batch_size=16)
 
@@ -47,13 +49,14 @@ for epoch in trange(config.pretrain_epoch):
         trainLossLogger.add(loss.item(), len(output))
     print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
 
-    # for batch_idx, (data, target) in enumerate(test_loader):
-    #     data, target = data.to(device), target.to(device)
-    #     output = model(data)
-    #     loss = loss_fn(output, target)
+    for batch_idx, (data, target) in enumerate(valid_loader):
+        data, target = data.to(device), target.to(device)
+        output = model(data)
+        loss = loss_fn(output, target)
     
     if epoch == config.warmup_steps:
         opt = Adam(model.parameters(), lr=config.lr)
+exit(0)
 
 lottery = Lottery(model, config.prune_percent, config.iterations)
 
@@ -70,13 +73,13 @@ for iteration in range(0, config.iterations):
             loss.backward()
             opt.step()
             trainLossLogger.add(loss.item(), len(output))
-        # for batch_idx, (data, target) in enumerate(test_loader):
-        #     model = lottery.clampWeights(model)
-        #     data, target = data.to(device), target.to(device)
-        #     output = model(data)
-        #     loss = loss_fn(output, target)
-        #     testLossLogger.add(loss.item(), len(output))
-        #     testAccuracyLogger.add(accuracy(output, target), 1)
+        for batch_idx, (data, target) in enumerate(valid_loader):
+            model = lottery.clampWeights(model)
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            loss = loss_fn(output, target)
+            testLossLogger.add(loss.item(), len(output))
+            testAccuracyLogger.add(accuracy(output, target), 1)
 
         print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
     lottery.updateMask(model)
@@ -99,7 +102,7 @@ for epoch in range(config.epoch):
         loss.backward()
         opt.step()
         trainLossLogger.add(loss.item(), len(output))
-    # for batch_idx, (data, target) in enumerate(test_loader):
+    # for batch_idx, (data, target) in enumerate(valid_loader):
     #     model = lottery.clampWeights(model)
     #     data, target = data.to(device), target.to(device)
     #     output = model(data)

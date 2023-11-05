@@ -3,6 +3,7 @@ import os
 import cv2
 import warnings
 import numpy as np
+from misc import softmax
 from torch.utils.data import Dataset
 
 class TrainDataset(Dataset):
@@ -43,3 +44,39 @@ class TrainDataset(Dataset):
 
         return img, label
 
+
+class ValidDataset(Dataset):
+    def __init__(self, PATH='Valid'):
+        self.x = []
+        self.y = []
+        for filename in os.listdir(PATH):
+            img = cv2.imread(os.path.join(PATH, filename))
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+            img = img[:1080*4, :1920*4]
+            img = cv2.resize(img, (1920, 1080))
+            (corners, ids, rejected) = cv2.aruco.detectMarkers(img, cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_1000))
+            label = np.zeros(shape=(img.shape[0], img.shape[1]))
+            if ids == [0]:
+                corners = corners[0].astype(np.int32)
+                label = cv2.fillPoly(label, pts = corners, color =(255,255,255))
+            img = img.astype(np.float32)
+            img = img.swapaxes(0, 2)
+            img = img.swapaxes(1, 2)
+
+            label = cv2.resize(label, (671, 351))
+            label = softmax(label)
+            label = np.array([label])
+
+            label = torch.tensor(label, dtype=torch.float32)
+            img = torch.tensor(img, dtype=torch.float32)
+
+            self.x.append(img)
+            self.y.append(label)
+
+    def __len__(self):
+        return len(self.x)
+    def __getitem__(self, index):
+        return self.x[index], self.y[index]
+
+        

@@ -83,5 +83,6 @@ def accuracy(output, target):
   output =  train_acc / len(output)
   return output
   
-
-  
+def softmax(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
