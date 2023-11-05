@@ -26,20 +26,23 @@ writer = SummaryWriter('archive')
 valid = ValidDataset()
 valid_loader = DataLoader(valid, batch_size=1)
 train = TrainDataset()
-train_loader = DataLoader(train, batch_size=16)
+train_loader = DataLoader(train, batch_size=32)
 
 device = torch.device('mps')
 opt = Adam(model.parameters(), lr=config.warmup_lr)
 loss_fn = nn.MSELoss()
 
 trainLossLogger = Logger(writer, "trainLossLogger")
-
 testLossLogger = Logger(writer, "testLossLogger")
+trainLossLogger.setPrefix("Pretrain")
+testLossLogger.setPrefix("Pretrain")
+trainLossLogger.setWrite(True)
+testLossLogger.setWrite(True)
 
 model = model.to(device)
 model.train()
 
-for epoch in trange(config.pretrain_epoch):
+for epoch in range(config.pretrain_epoch):
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         opt.zero_grad()

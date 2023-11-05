@@ -8,6 +8,7 @@ class Logger:
     self.max = None
     self.min = None
     self.write = False
+    self.write_prefix = ""
     return
     
   def add(self, input, length):
@@ -24,7 +25,7 @@ class Logger:
     self.length = 0
 
     if self.write == True:
-      self.writter.add_scalar(self.writter_path, output, self.idx)
+      self.writter.add_scalar(self.write_prefix + '/' + self.writter_path, output, self.idx)
     if self.max == None:
       self.max = output
     if self.min == None:
@@ -51,4 +52,7 @@ class Logger:
 
   def setWrite(self, input):
     self.write = input
-    
+    return
+  
+  def setPrefix(self, prefix):
+    self.write_prefix = prefix
