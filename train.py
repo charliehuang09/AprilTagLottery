@@ -33,6 +33,18 @@ device = torch.device('mps')
 opt = Adam(model.parameters(), lr=config.warmup_lr)
 loss_fn = nn.MSELoss()
 
+hparams = {
+    "lr":config.lr,
+    "Epoch": config.epoch,
+    "Pretrain Epochs": config.pretrain_epoch,
+    "Warmup Steps": config.warmup_steps,
+    "Warmup Lr": config.warmup_lr,
+    "Purne Percent": config.prune_percent,
+    "Prune Iterations": config.iterations,
+    "Iteration Epochs": config.iteration_epoch,
+    "Seed": config.seed,
+}
+writer.add_hparams(hparams, {})
 trainLossLogger = Logger(writer, "trainLossLogger")
 testLossLogger = Logger(writer, "testLossLogger")
 trainLossLogger.setPrefix("Pretrain")
