@@ -19,8 +19,7 @@ class imageLogger:
         imgs = np.array(self.imgs)
         imgs = torch.Tensor(imgs)
         grid = make_grid(imgs)
-        print(grid.shape)
-        self.writer.add_image(self.name, grid, self.idx, )
+        self.writer.add_image(self.name, grid, self.idx)
         self.idx += 1
         self.imgs = []
         return

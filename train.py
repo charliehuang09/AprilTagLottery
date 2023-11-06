@@ -44,7 +44,7 @@ hparams = {
     "Iteration Epochs": config.iteration_epoch,
     "Seed": config.seed,
 }
-writer.add_hparams(hparams, {})
+# writer.add_hparams(hparams, {})
 trainLossLogger = Logger(writer, "trainLossLogger")
 testLossLogger = Logger(writer, "testLossLogger")
 trainLossLogger.setPrefix("Pretrain")
@@ -54,6 +54,9 @@ testLossLogger.setWrite(True)
 
 trainXImageLogger = imageLogger(writer, 'trainXImage', 8)
 trainYImageLogger = imageLogger(writer, 'trainYImage', 8)
+
+validXImageLogger = imageLogger(writer, 'validXImage', 4)
+validYImageLogger = imageLogger(writer, 'validYImage', 4)
 
 model = model.to(device)
 model.train()
@@ -75,12 +78,17 @@ for epoch in range(config.pretrain_epoch):
         output = model(data)
         loss = loss_fn(output, target)
         testLossLogger.add(loss.item(), len(output))
+        validXImageLogger.addImage(data[0] / 255)
+        validYImageLogger.addImage(output[0])
+
     
     if epoch == config.warmup_steps:
         opt = Adam(model.parameters(), lr=config.lr)
     
     trainXImageLogger.writeImage()
     trainYImageLogger.writeImage()
+    validXImageLogger.writeImage()
+    validYImageLogger.writeImage()
     print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
 exit(0)
 
