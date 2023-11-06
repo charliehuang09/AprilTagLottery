@@ -3,5 +3,6 @@ Valid/
 archive/
 __pycache__/
 runs/
+Data/
 playground.ipynb
 .DS_Store

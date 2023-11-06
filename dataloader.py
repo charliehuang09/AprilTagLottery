@@ -18,6 +18,7 @@ class TrainDataset(Dataset):
                 ret, frame = cap.read()
                 if not ret:
                     continue
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 frame = cv2.resize(frame, (960, 540))
                 self.imgs.append(frame)
         self.imgs = np.array(self.imgs)
