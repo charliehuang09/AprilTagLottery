@@ -12,6 +12,7 @@ from logger import Logger
 from lottery import Lottery
 import numpy as np
 from model import Unet
+from imageLogger import imageLogger
 from dataloader import TrainDataset, ValidDataset
 
 np.random.seed(config.seed)
@@ -20,8 +21,8 @@ torch.use_deterministic_algorithms(True)
 
 model = Unet()
 summary(model, (3, 960, 540))
-# writer = SummaryWriter()
-writer = SummaryWriter('archive')
+writer = SummaryWriter()
+# writer = SummaryWriter('archive')
 
 valid = ValidDataset()
 valid_loader = DataLoader(valid, batch_size=1)
@@ -39,6 +40,9 @@ testLossLogger.setPrefix("Pretrain")
 trainLossLogger.setWrite(True)
 testLossLogger.setWrite(True)
 
+trainXImageLogger = imageLogger(writer, 'trainXImage', 8)
+trainYImageLogger = imageLogger(writer, 'trainYImage', 8)
+
 model = model.to(device)
 model.train()
 
@@ -51,6 +55,8 @@ for epoch in range(config.pretrain_epoch):
         loss.backward()
         opt.step()
         trainLossLogger.add(loss.item(), len(output))
+        trainXImageLogger.addImage(data[0] / 255)
+        trainYImageLogger.addImage(output[0])
 
     for batch_idx, (data, target) in enumerate(valid_loader):
         data, target = data.to(device), target.to(device)
@@ -60,7 +66,9 @@ for epoch in range(config.pretrain_epoch):
     
     if epoch == config.warmup_steps:
         opt = Adam(model.parameters(), lr=config.lr)
-
+    
+    trainXImageLogger.writeImage()
+    trainYImageLogger.writeImage()
     print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
 exit(0)
 
