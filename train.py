@@ -52,8 +52,8 @@ testLossLogger.setPrefix("Pretrain")
 trainLossLogger.setWrite(True)
 testLossLogger.setWrite(True)
 
-trainXImageLogger = imageLogger(writer, 'trainXImage', 8)
-trainYImageLogger = imageLogger(writer, 'trainYImage', 8)
+trainXImageLogger = imageLogger(writer, 'trainXImage', 4)
+trainYImageLogger = imageLogger(writer, 'trainYImage', 4)
 
 validXImageLogger = imageLogger(writer, 'validXImage', 4)
 validYImageLogger = imageLogger(writer, 'validYImage', 4)

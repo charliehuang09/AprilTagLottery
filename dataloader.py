@@ -27,7 +27,6 @@ class TrainDataset(Dataset):
     def __len__(self):
         return len(self.imgs)
     def __getitem__(self, index):
-        index = np.random.randint(0, len(self.imgs))
         img = self.imgs[index]
         (corners, ids, rejected) = cv2.aruco.detectMarkers(img, cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_1000))
         label = np.zeros(shape=(img.shape[0], img.shape[1]))
