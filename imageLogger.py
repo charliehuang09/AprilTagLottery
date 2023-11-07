@@ -9,6 +9,7 @@ class imageLogger:
         self.max_size = max_size
         self.imgs = []
         self.idx = 1
+        self.prefix = ""
     
     def addImage(self, img):
         if len(self.imgs) < self.max_size:
@@ -19,7 +20,11 @@ class imageLogger:
         imgs = np.array(self.imgs)
         imgs = torch.Tensor(imgs)
         grid = make_grid(imgs)
-        self.writer.add_image(self.name, grid, self.idx)
+        self.writer.add_image(self.prefix + '/' + self.name, grid, self.idx)
         self.idx += 1
         self.imgs = []
+        return
+    
+    def setPrefix(self, prefix):
+        self.prefix = prefix
         return

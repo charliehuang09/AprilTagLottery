@@ -4,5 +4,6 @@ archive/
 __pycache__/
 runs/
 Data/
+test/
 playground.ipynb
 .DS_Store

@@ -23,12 +23,12 @@ torch.use_deterministic_algorithms(True)
 model = Unet()
 summary(model, (3, 960, 540))
 writer = SummaryWriter()
-# writer = SummaryWriter('archive')
+# writer = SummaryWriter('./archive/')
 
 valid = ValidDataset()
 valid_loader = DataLoader(valid, batch_size=1)
 train = TrainDataset()
-train_loader = DataLoader(train, batch_size=32)
+train_loader = DataLoader(train, batch_size=32, shuffle=True)
 
 device = torch.device('mps')
 opt = Adam(model.parameters(), lr=config.warmup_lr)
@@ -46,18 +46,29 @@ hparams = {
     "Seed": config.seed,
 }
 # writer.add_hparams(hparams, {})
-trainLossLogger = Logger(writer, "trainLossLogger")
-testLossLogger = Logger(writer, "testLossLogger")
+trainLossLogger = Logger(writer, "train/LossLogger")
+validLossLogger = Logger(writer, "valid/LossLogger")
 trainLossLogger.setPrefix("Pretrain")
-testLossLogger.setPrefix("Pretrain")
+validLossLogger.setPrefix("Pretrain")
 trainLossLogger.setWrite(True)
-testLossLogger.setWrite(True)
+validLossLogger.setWrite(True)
 
-trainXImageLogger = imageLogger(writer, 'trainXImage', 4)
-trainYImageLogger = imageLogger(writer, 'trainYImage', 4)
+trainPredOverlayLogger = imageLogger(writer, 'train/PredOverlay', 4)
+trainLabelOverlayLogger = imageLogger(writer, 'train/LabelOverlay', 4)
+trainPredsLogger = imageLogger(writer, 'train/Preds', 4)
 
-validXImageLogger = imageLogger(writer, 'validXImage', 4)
-validYImageLogger = imageLogger(writer, 'validYImage', 4)
+validPredOverlayLogger = imageLogger(writer, 'valid/PredOverlay', 4)
+validLabelOverlayLogger = imageLogger(writer, 'valid/LabelOverlay', 4)
+validPredsLogger = imageLogger(writer, 'valid/Preds', 4)
+
+trainPredOverlayLogger.setPrefix('Pretrain')
+trainLabelOverlayLogger.setPrefix('Pretrain')
+trainPredsLogger.setPrefix('Pretrain')
+
+validPredOverlayLogger.setPrefix('Pretrain')
+validLabelOverlayLogger.setPrefix('Pretrain')
+validPredsLogger.setPrefix('Pretrain')
+
 
 model = model.to(device)
 model.train()
@@ -71,28 +82,45 @@ for epoch in range(config.pretrain_epoch):
         loss.backward()
         opt.step()
         trainLossLogger.add(loss.item(), len(output))
-        trainXImageLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.5))
-        trainYImageLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0]), 0.5))
+        trainPredOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.7) / 255)
+        trainLabelOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0] / 255), 0.7) / 255)
+        trainPredsLogger.addImage(output[0])
 
     for batch_idx, (data, target) in enumerate(valid_loader):
         data, target = data.to(device), target.to(device)
         output = model(data)
         loss = loss_fn(output, target)
-        testLossLogger.add(loss.item(), len(output))
-        validXImageLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.5))
-        validYImageLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0]), 0.5))
+        validLossLogger.add(loss.item(), len(output))
+        validPredOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.7) / 255)
+        validLabelOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0] / 255), 0.7) / 255)
+        validPredsLogger.addImage(output[0])
 
     
     if epoch == config.warmup_steps:
         opt = Adam(model.parameters(), lr=config.lr)
     
-    trainXImageLogger.writeImage()
-    trainYImageLogger.writeImage()
-    validXImageLogger.writeImage()
-    validYImageLogger.writeImage()
-    print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
+    trainPredOverlayLogger.writeImage()
+    trainLabelOverlayLogger.writeImage()
+    validPredOverlayLogger.writeImage()
+    validLabelOverlayLogger.writeImage()
+    trainPredsLogger.writeImage()
+    validPredsLogger.writeImage()
+    print(f"Train Loss: {trainLossLogger.get()} Test Loss: {validLossLogger.get()} Epoch: {epoch + 1}")
 
-exit(0)
+trainLossLogger.clear()
+validLossLogger.clear()
+
+trainLossLogger.setPrefix("Prune")
+validLossLogger.setPrefix("Prune")
+
+trainPredOverlayLogger.setPrefix('Prune')
+trainLabelOverlayLogger.setPrefix('Prune')
+trainPredsLogger.setPrefix('Prune')
+
+validPredOverlayLogger.setPrefix('Prune')
+validLabelOverlayLogger.setPrefix('Prune')
+validPredsLogger.setPrefix('Prune')
+
 lottery = Lottery(model, config.prune_percent, config.iterations)
 
 for iteration in range(0, config.iterations):
@@ -108,22 +136,38 @@ for iteration in range(0, config.iterations):
             loss.backward()
             opt.step()
             trainLossLogger.add(loss.item(), len(output))
+            trainPredOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.7) / 255)
+            trainLabelOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0] / 255), 0.7) / 255)
+            trainPredsLogger.addImage(output[0])
+
         for batch_idx, (data, target) in enumerate(valid_loader):
             model = lottery.clampWeights(model)
             data, target = data.to(device), target.to(device)
             output = model(data)
             loss = loss_fn(output, target)
-            testLossLogger.add(loss.item(), len(output))
+            validLossLogger.add(loss.item(), len(output))
+            validPredOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.7) / 255)
+            validLabelOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0] / 255), 0.7) / 255)
+            validPredsLogger.addImage(output[0])
 
-        print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
+        print(f"Train Loss: {trainLossLogger.get()} Test Loss: {validLossLogger.get()} Epoch: {epoch + 1}")
     lottery.updateMask(model)
     model = lottery.applyMask(model)
 
 trainLossLogger.clear()
-testLossLogger.clear()
+validLossLogger.clear()
 
-trainLossLogger.setWrite(True)
-testLossLogger.setWrite(True)
+trainLossLogger.setPrefix("Final")
+validLossLogger.setPrefix("Final")
+
+trainPredOverlayLogger.setPrefix('Final')
+trainLabelOverlayLogger.setPrefix('Final')
+trainPredsLogger.setPrefix('Final')
+
+validPredOverlayLogger.setPrefix('Final')
+validLabelOverlayLogger.setPrefix('Final')
+validPredsLogger.setPrefix('Final')
+
 opt = Adam(model.parameters(), lr=config.lr)
 print("FINAL-Training----------------------------------------------------------------")
 for epoch in range(config.epoch):
@@ -136,20 +180,26 @@ for epoch in range(config.epoch):
         loss.backward()
         opt.step()
         trainLossLogger.add(loss.item(), len(output))
-    # for batch_idx, (data, target) in enumerate(valid_loader):
-    #     model = lottery.clampWeights(model)
-    #     data, target = data.to(device), target.to(device)
-    #     output = model(data)
-    #     loss = loss_fn(output, target)
-    #     testLossLogger.add(loss.item(), len(output))
-    #     testAccuracyLogger.add(accuracy(output, target), 1)
-    print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
+        trainPredOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.7) / 255)
+        trainLabelOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0] / 255), 0.7) / 255)
+        trainPredsLogger.addImage(output[0])
+
+    for batch_idx, (data, target) in enumerate(valid_loader):
+        model = lottery.clampWeights(model)
+        data, target = data.to(device), target.to(device)
+        output = model(data)
+        loss = loss_fn(output, target)
+        validLossLogger.add(loss.item(), len(output))
+        validPredOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.7) / 255)
+        validLabelOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0] / 255), 0.7) / 255)
+        validPredsLogger.addImage(output[0])
+    print(f"Train Loss: {trainLossLogger.get()} Test Loss: {validLossLogger.get()} Epoch: {epoch + 1}")
 
 
 print("FINAL")
-print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
+print(f"Train Loss: {trainLossLogger.get()} Test Loss: {validLossLogger.get()} Epoch: {epoch + 1}")
 
 writer.add_scalar("Final trainLossLogger", trainLossLogger.getMin(), 0) 
-writer.add_scalar("Final testLossLogger", testLossLogger.getMin(), 0)
+writer.add_scalar("Final testLossLogger", validLossLogger.getMin(), 0)
 
 print(lottery.getMask())
