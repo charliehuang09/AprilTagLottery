@@ -7,13 +7,14 @@ import config
 from tqdm import trange
 from torch import nn
 from torch.utils.data import DataLoader
-from misc import accuracy, overlay
+from misc import accuracy, overlay, convert_segmentation
 from logger import Logger
 from lottery import Lottery
 import numpy as np
 from model import Unet
 from imageLogger import imageLogger
 from dataloader import TrainDataset, ValidDataset
+from torchvision.utils import draw_segmentation_masks
 
 np.random.seed(config.seed)
 torch.manual_seed(config.seed)
@@ -70,16 +71,16 @@ for epoch in range(config.pretrain_epoch):
         loss.backward()
         opt.step()
         trainLossLogger.add(loss.item(), len(output))
-        trainXImageLogger.addImage(data[0] / 255)
-        trainYImageLogger.addImage(output[0])
+        trainXImageLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.5))
+        trainYImageLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0]), 0.5))
 
     for batch_idx, (data, target) in enumerate(valid_loader):
         data, target = data.to(device), target.to(device)
         output = model(data)
         loss = loss_fn(output, target)
         testLossLogger.add(loss.item(), len(output))
-        validXImageLogger.addImage(data[0] / 255)
-        validYImageLogger.addImage(output[0])
+        validXImageLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.5))
+        validYImageLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0]), 0.5))
 
     
     if epoch == config.warmup_steps:
@@ -90,8 +91,8 @@ for epoch in range(config.pretrain_epoch):
     validXImageLogger.writeImage()
     validYImageLogger.writeImage()
     print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
-exit(0)
 
+exit(0)
 lottery = Lottery(model, config.prune_percent, config.iterations)
 
 for iteration in range(0, config.iterations):
@@ -113,7 +114,6 @@ for iteration in range(0, config.iterations):
             output = model(data)
             loss = loss_fn(output, target)
             testLossLogger.add(loss.item(), len(output))
-            testAccuracyLogger.add(accuracy(output, target), 1)
 
         print(f"Train Loss: {trainLossLogger.get()} Test Loss: {testLossLogger.get()} Epoch: {epoch + 1}")
     lottery.updateMask(model)

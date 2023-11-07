@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import torch
+from torchvision.transforms import Resize
 from torchvision.utils import make_grid
 
 def overlay(x, outputs):
@@ -34,3 +35,20 @@ def accuracy(output, target):
 def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
+
+def convert_binary(input):
+   if input > 0.5:
+      return True
+   return False
+
+def convert_segmentation(data, mask):
+   data = data.to(torch.uint8)
+   data = data.cpu()
+   mask = mask.detach().cpu()
+   mask.apply_(convert_binary)
+   mask = mask.to(torch.bool)
+
+   resize = Resize((540,960), antialias=True)
+   mask = resize(mask)
+   
+   return data, mask 
