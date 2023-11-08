@@ -55,12 +55,12 @@ class ValidDataset(Dataset):
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
             img = img[:1080*4, :1920*4]
-            img = cv2.resize(img, (960, 540))
             (corners, ids, rejected) = cv2.aruco.detectMarkers(img, cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_1000))
             label = np.zeros(shape=(img.shape[0], img.shape[1]))
             if ids == [0]:
                 corners = corners[0].astype(np.int32)
                 label = cv2.fillPoly(label, pts = corners, color =(255,255,255))
+            img = cv2.resize(img, (960, 540))
             img = img.astype(np.float32)
             img = img.swapaxes(0, 2)
             img = img.swapaxes(1, 2)
