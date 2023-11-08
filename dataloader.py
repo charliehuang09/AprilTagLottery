@@ -19,7 +19,6 @@ class TrainDataset(Dataset):
                 if not ret:
                     continue
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                frame = cv2.resize(frame, (960, 540))
                 self.imgs.append(frame)
         self.imgs = np.array(self.imgs)
         print("finished loading dataset")
@@ -34,6 +33,7 @@ class TrainDataset(Dataset):
             corners = corners[0].astype(np.int32)
             label = cv2.fillPoly(label, pts = corners, color =(255,255,255))
         label = cv2.resize(label, (287, 127))
+        img = cv2.resize(img, (960, 540))
 
         img = img.astype(np.float32)
         label = label.astype(np.float32)
