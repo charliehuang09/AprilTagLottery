@@ -8,6 +8,7 @@ class Lottery:
     self.device = device
     self.mask = None
     self.original_model = self.getWeights(model)
+    self.bias = self.getBias(model)
     self.iterations = iterations
     self.idx = 1
 
@@ -42,16 +43,27 @@ class Lottery:
 
     self.mask = mask
   
+  def getBias(self, model):
+    bias = []
+    for name, param in model.named_parameters():
+      if name.endswith('.bias'):
+        bias.append(param.data.cpu().numpy())
+    return bias
+  
   def applyMask(self, model):
     if self.mask == None:
       return model
     mask = self.mask
     model = model.cpu()
-    i = 0
+    weightIdx = 0
+    biasIdx = 0
     for name, param in model.named_parameters():
       if name.endswith('.weight'):
-        param.data = torch.from_numpy(self.original_model[i] * mask[i])
-        i += 1
+        param.data = torch.from_numpy(self.original_model[weightIdx] * mask[weightIdx])
+        weightIdx += 1
+      if name.endswith('.bias'):
+        param.data = torch.from_numpy(self.bias[biasIdx])
+        biasIdx += 1
     
     model = model.to(self.device)
     return model

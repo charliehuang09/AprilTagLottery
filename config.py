@@ -1,9 +1,10 @@
 lr = 1e-4
-epoch = 5
 prune_percent = 0.9
 seed = 42
-iterations = 15
-iteration_epoch = 25
-pretrain_epoch = 50
-warmup_steps = 10
+warmup_steps = 50
 warmup_lr = 1e-5
+epoch = 1000
+iteration_epoch = 50
+pretrain_epoch = 250
+iterations = 10
+save_path = 'model.pth'

@@ -149,6 +149,13 @@ for iteration in range(0, config.iterations):
             validPredOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.7) / 255)
             validLabelOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0] / 255), 0.7) / 255)
             validPredsLogger.addImage(output[0])
+        
+        trainPredOverlayLogger.writeImage()
+        trainLabelOverlayLogger.writeImage()
+        validPredOverlayLogger.writeImage()
+        validLabelOverlayLogger.writeImage()
+        trainPredsLogger.writeImage()
+        validPredsLogger.writeImage()
 
         print(f"Train Loss: {trainLossLogger.get()} Test Loss: {validLossLogger.get()} Epoch: {epoch + 1}")
     lottery.updateMask(model)
@@ -193,6 +200,14 @@ for epoch in range(config.epoch):
         validPredOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], output[0]), 0.7) / 255)
         validLabelOverlayLogger.addImage(draw_segmentation_masks(*convert_segmentation(data[0], target[0] / 255), 0.7) / 255)
         validPredsLogger.addImage(output[0])
+
+    trainPredOverlayLogger.writeImage()
+    trainLabelOverlayLogger.writeImage()
+    validPredOverlayLogger.writeImage()
+    validLabelOverlayLogger.writeImage()
+    trainPredsLogger.writeImage()
+    validPredsLogger.writeImage()
+
     print(f"Train Loss: {trainLossLogger.get()} Test Loss: {validLossLogger.get()} Epoch: {epoch + 1}")
 
 
@@ -202,4 +217,5 @@ print(f"Train Loss: {trainLossLogger.get()} Test Loss: {validLossLogger.get()} E
 writer.add_scalar("Final trainLossLogger", trainLossLogger.getMin(), 0) 
 writer.add_scalar("Final testLossLogger", validLossLogger.getMin(), 0)
 
-print(lottery.getMask())
+model = lottery.clampWeights(model)
+torch.save(model.state_dict(), config.save_path)
