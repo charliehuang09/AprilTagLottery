@@ -7,12 +7,12 @@ def BFS(image, x, y, threshold=config.threshold):
     size = 0
     xq = []
     yq = []
+    xmin = x
+    ymin = y
+    xmax = x
+    ymax = y
     xlimit = image.shape[0]
     ylimit = image.shape[1]
-    xmin = xlimit
-    ymin = ylimit
-    xmax = 0
-    ymax = 0
     xq.append(x)
     yq.append(y)
     while(len(xq) > 0):
@@ -47,6 +47,6 @@ def drawBox(image, threshold=config.threshold):
                     output_size = size
                     output_corners = corners
 
-    return image, output_size, corners
+    return image, output_size, output_corners
 
 
