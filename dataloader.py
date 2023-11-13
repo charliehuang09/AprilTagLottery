@@ -8,7 +8,6 @@ from torch.utils.data import Dataset
 
 class TrainDataset(Dataset):
     def __init__(self, PATH='Train'):
-        print("loading dataset...")
         self.imgs = []
         for filename in os.listdir(PATH):
             path = os.path.join(PATH, filename)
@@ -21,7 +20,6 @@ class TrainDataset(Dataset):
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 self.imgs.append(frame)
         self.imgs = np.array(self.imgs)
-        print("finished loading dataset")
 
     def __len__(self):
         return len(self.imgs)

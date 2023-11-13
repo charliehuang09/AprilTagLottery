@@ -7,4 +7,6 @@ epoch = 1000
 iteration_epoch = 50
 pretrain_epoch = 250
 iterations = 10
+threshold = 0.5
 save_path = 'model.pth'
+batch_size = 32

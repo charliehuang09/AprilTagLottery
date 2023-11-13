@@ -25,14 +25,16 @@ summary(model, (3, 960, 540))
 writer = SummaryWriter()
 # writer = SummaryWriter('./archive/')
 
+print("loading dataset...")
 valid = ValidDataset()
 valid_loader = DataLoader(valid, batch_size=1)
 train = TrainDataset()
-train_loader = DataLoader(train, batch_size=32, shuffle=True)
+train_loader = DataLoader(train, batch_size=config.batch_size, shuffle=True)
 
 device = torch.device('mps')
 opt = Adam(model.parameters(), lr=config.warmup_lr)
 loss_fn = nn.MSELoss()
+print("finished loading dataset")
 
 hparams = {
     "lr":config.lr,
@@ -178,6 +180,7 @@ validPredsLogger.setPrefix('Final')
 opt = Adam(model.parameters(), lr=config.lr)
 print("FINAL-Training----------------------------------------------------------------")
 for epoch in range(config.epoch):
+    opt = Adam(model.parameters(), lr=config.lr)
     for batch_idx, (data, target) in enumerate(train_loader):
         model = lottery.clampWeights(model)
         data, target = data.to(device), target.to(device)
