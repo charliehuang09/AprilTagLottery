@@ -52,3 +52,13 @@ def convert_segmentation(data, mask):
    mask = resize(mask)
    
    return data, mask 
+
+def convert_plt(image):
+   image = np.array(image)
+   image = np.swapaxes(image,0, 2)
+   image = np.swapaxes(image, 0, 1)
+
+def convert_torch(image):
+   image = np.array(image)
+   image = np.swapaxes(image,0, 2)
+   image = np.swapaxes(image, 1, 2)
