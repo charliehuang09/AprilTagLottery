@@ -4,6 +4,7 @@ import cv2
 import warnings
 import numpy as np
 from misc import softmax
+import config
 from torch.utils.data import Dataset
 
 class TrainDataset(Dataset):
@@ -30,8 +31,8 @@ class TrainDataset(Dataset):
         if ids == [0]:
             corners = corners[0].astype(np.int32)
             label = cv2.fillPoly(label, pts = corners, color =(255,255,255))
-        label = cv2.resize(label, (287, 127))
-        img = cv2.resize(img, (960, 540))
+        label = cv2.resize(label, config.yShape)
+        img = cv2.resize(img, config.xShape)
 
         img = img.astype(np.float32)
         label = label.astype(np.float32)
@@ -58,12 +59,12 @@ class ValidDataset(Dataset):
             if ids == [0]:
                 corners = corners[0].astype(np.int32)
                 label = cv2.fillPoly(label, pts = corners, color =(255,255,255))
-            img = cv2.resize(img, (960, 540))
+            img = cv2.resize(img, config.xShape)
             img = img.astype(np.float32)
             img = img.swapaxes(0, 2)
             img = img.swapaxes(1, 2)
 
-            label = cv2.resize(label, (287, 127))
+            label = cv2.resize(label, config.yShape)
             label = softmax(label)
             label = np.array([label])
 
