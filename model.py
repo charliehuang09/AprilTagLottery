@@ -34,8 +34,8 @@ class Unet(torch.nn.Module):
 
         #-------------------------------------------
 
-        self.conv13 = nn.Conv2d(channels * 8, channels * 16, (3,3))
-        self.conv14 = nn.Conv2d(channels * 16, channels * 16, (3,3))
+        self.conv13 = nn.Conv2d(channels * 4, channels * 8, (3,3))
+        self.conv14 = nn.Conv2d(channels * 8, channels * 8, (3,3))
         
         #-------------------------------------------
 
@@ -90,12 +90,12 @@ class Unet(torch.nn.Module):
         x = self.maxpool9(x)
 
         #forth block
-        x = self.conv10(x)
-        x = self.activation(x)
-        x = self.conv11(x)
-        x = self.activation(x)
-        x4 = x
-        x = self.maxpool12(x)
+        # x = self.conv10(x)
+        # x = self.activation(x)
+        # x = self.conv11(x)
+        # x = self.activation(x)
+        # x4 = x
+        # x = self.maxpool12(x)
 
         #-------------------------------------------
         x = self.conv13(x)
@@ -106,14 +106,14 @@ class Unet(torch.nn.Module):
         #-------------------------------------------
 
         #first block
-        x = self.up15(x)
-        crop = CenterCrop((x.shape[2], x.shape[3]))
-        x4 = crop(x4)
-        x = torch.cat([x4, x], dim=1)
-        x = self.conv16(x)
-        x = self.activation(x)
-        x = self.conv17(x)
-        x = self.activation(x)
+        # x = self.up15(x)
+        # crop = CenterCrop((x.shape[2], x.shape[3]))
+        # x4 = crop(x4)
+        # x = torch.cat([x4, x], dim=1)
+        # x = self.conv16(x)
+        # x = self.activation(x)
+        # x = self.conv17(x)
+        # x = self.activation(x)
 
         #second block
         x = self.up18(x)

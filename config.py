@@ -11,4 +11,4 @@ threshold = 0.5
 save_path = 'model.pth'
 batch_size = 32
 xShape = (960, 540)
-yShape = (772, 356)
+yShape = (868, 452)
