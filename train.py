@@ -20,10 +20,9 @@ np.random.seed(config.seed)
 torch.manual_seed(config.seed)
 torch.use_deterministic_algorithms(True)
 
-model = Unet(channels=3)
+model = Unet(4)
 summary(model, (3, 960, 540))
-summary(model, (3, 572, 572))
-exit(0)
+# summary(model, (3, 572, 572))
 writer = SummaryWriter()
 # writer = SummaryWriter('./archive/')
 

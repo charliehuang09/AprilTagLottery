@@ -109,7 +109,6 @@ class Unet(torch.nn.Module):
         x = self.up15(x)
         crop = CenterCrop((x.shape[2], x.shape[3]))
         x4 = crop(x4)
-        print(x.shape, x4.shape)
         x = torch.cat([x4, x], dim=1)
         x = self.conv16(x)
         x = self.activation(x)

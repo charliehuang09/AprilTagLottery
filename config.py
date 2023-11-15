@@ -1,8 +1,8 @@
-lr = 1e-4
+lr = 1e-3
+warmup_lr = 1e-5
 prune_percent = 0.9
 seed = 42
 warmup_steps = 50
-warmup_lr = 1e-5
 epoch = 1000
 iteration_epoch = 50
 pretrain_epoch = 250
