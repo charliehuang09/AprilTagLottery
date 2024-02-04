@@ -13,7 +13,7 @@ class imageLogger:
     
     def addImage(self, img):
         if len(self.imgs) < self.max_size:
-            self.imgs.append(img.detach().cpu())
+            self.imgs.append(img.detach().cpu().numpy())
         return
     
     def writeImage(self):
